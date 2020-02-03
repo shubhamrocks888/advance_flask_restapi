@@ -22,31 +22,10 @@ def create_table():
     db.create_all()
 
 jwt = JWTManager(app)    # /auth
-@jwt.user_claims_loader
-def add_claims_to_identity(identity):
-    if identity == 1:
-        return {"is_admin":True}
-    return {"is_admin":False}
 
 @jwt.token_in_blacklist_loader
 def check_if_token_in_blacklist(decrypted_token):
     return decrypted_token['jti'] in BLACKLIST
-
-@jwt.invalid_token_loader
-def invalid_token_callback(error):
-    return jsonify({"description":"Signature verification failed","error":"invalid_token"}),401
-
-@jwt.unauthorized_loader
-def missing_token_callback(error):
-    return jsonify({"description":"Request does not contain an access token","error":"authorization required"}),401
-
-@jwt.needs_fresh_token_loader
-def token_not_fresh_callback():
-    return jsonify({"description":"The token is not fresh","error":"fresh token required"}),401
-
-@jwt.revoked_token_loader
-def revoked_token_callback():
-    return jsonify({"description":"token has been revoked","error":"token_revoked"}),401
 
 api.add_resource(Item,'/item/<string:name>')
 api.add_resource(ItemList,'/items/')
@@ -57,7 +36,6 @@ api.add_resource(User,'/user/<int:user_id>')
 api.add_resource(UserLogin,'/login')
 api.add_resource(TokenRefresh,'/refresh')
 api.add_resource(UserLogout,'/logout')
-
 
 if __name__ == "__main__":
     app.run(port=5000,debug=True)
